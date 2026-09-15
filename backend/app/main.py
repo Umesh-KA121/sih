@@ -10,6 +10,8 @@ from app.routers import (
     investigations,
 )
 
+from app.api.routes.intelligence import router as intelligence_router
+
 
 app = FastAPI(
     title="SAT-SA API",
@@ -63,6 +65,10 @@ app.include_router(
 
 app.include_router(
     investigations.router
+)
+
+app.include_router(
+    intelligence_router
 )
 
 
