@@ -1,15 +1,15 @@
-from datetime import datetime
-
 from sqlalchemy import (
     Boolean,
+    Column,
+    Date,
     DateTime,
     Float,
-    ForeignKey,
     Integer,
     String,
     Text,
+    ForeignKey,
+    Index,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -21,46 +21,39 @@ from app.database import Base
 class Organization(Base):
     __tablename__ = "organizations"
 
-    organization_id: Mapped[str] = mapped_column(
-        String,
+    organization_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    name: Mapped[str] = mapped_column(
-        String,
+    organization_name = Column(
+        String(150),
         nullable=False,
     )
 
-    sector: Mapped[str | None] = mapped_column(
-        String,
+    industry = Column(
+        String(100),
         nullable=True,
     )
 
-    size: Mapped[str | None] = mapped_column(
-        String,
+    organization_size = Column(
+        String(50),
         nullable=True,
     )
 
-    location: Mapped[str | None] = mapped_column(
-        String,
+    soc_maturity = Column(
+        String(50),
         nullable=True,
     )
 
-    created_at: Mapped[datetime | None] = mapped_column(
-        DateTime,
+    region = Column(
+        String(100),
         nullable=True,
     )
 
-    analysts: Mapped[list["Analyst"]] = relationship(
-        back_populates="organization",
-    )
-
-    assets: Mapped[list["Asset"]] = relationship(
-        back_populates="organization",
-    )
-
-    alerts: Mapped[list["Alert"]] = relationship(
-        back_populates="organization",
+    created_at = Column(
+        Date,
+        nullable=True,
     )
 
 
@@ -71,61 +64,51 @@ class Organization(Base):
 class Analyst(Base):
     __tablename__ = "analysts"
 
-    analyst_id: Mapped[str] = mapped_column(
-        String,
+    analyst_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    organization_id: Mapped[str] = mapped_column(
+    organization_id = Column(
+        String(20),
         ForeignKey("organizations.organization_id"),
         nullable=False,
+        index=True,
     )
 
-    name: Mapped[str] = mapped_column(
-        String,
+    name = Column(
+        String(150),
         nullable=False,
     )
 
-    role: Mapped[str | None] = mapped_column(
-        String,
+    role = Column(
+        String(100),
         nullable=True,
     )
 
-    team: Mapped[str | None] = mapped_column(
-        String,
+    team = Column(
+        String(100),
         nullable=True,
     )
 
-    experience_years: Mapped[float | None] = mapped_column(
-        Float,
+    experience_years = Column(
+        Integer,
         nullable=True,
     )
 
-    shift: Mapped[str | None] = mapped_column(
-        String,
+    shift = Column(
+        String(50),
         nullable=True,
     )
 
-    status: Mapped[str | None] = mapped_column(
-        String,
+    status = Column(
+        String(50),
         nullable=True,
     )
 
-    joined_at: Mapped[datetime | None] = mapped_column(
-        DateTime,
+    joined_at = Column(
+        Date,
         nullable=True,
-    )
-
-    organization: Mapped["Organization"] = relationship(
-        back_populates="analysts",
-    )
-
-    alerts: Mapped[list["Alert"]] = relationship(
-        back_populates="analyst",
-    )
-
-    investigations: Mapped[list["Investigation"]] = relationship(
-        back_populates="analyst",
     )
 
 
@@ -136,51 +119,51 @@ class Analyst(Base):
 class Asset(Base):
     __tablename__ = "assets"
 
-    asset_id: Mapped[str] = mapped_column(
-        String,
+    asset_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    organization_id: Mapped[str] = mapped_column(
+    organization_id = Column(
+        String(20),
         ForeignKey("organizations.organization_id"),
+        nullable=False,
+        index=True,
+    )
+
+    asset_identifier = Column(
+        String(100),
         nullable=False,
     )
 
-    name: Mapped[str | None] = mapped_column(
-        String,
+    asset_name = Column(
+        String(150),
+        nullable=False,
+    )
+
+    asset_type = Column(
+        String(100),
         nullable=True,
     )
 
-    asset_type: Mapped[str | None] = mapped_column(
-        String,
+    criticality = Column(
+        String(50),
         nullable=True,
     )
 
-    criticality: Mapped[str | None] = mapped_column(
-        String,
+    environment = Column(
+        String(50),
         nullable=True,
     )
 
-    environment: Mapped[str | None] = mapped_column(
-        String,
+    location = Column(
+        String(150),
         nullable=True,
     )
 
-    status: Mapped[str | None] = mapped_column(
-        String,
+    status = Column(
+        String(50),
         nullable=True,
-    )
-
-    organization: Mapped["Organization"] = relationship(
-        back_populates="assets",
-    )
-
-    alerts: Mapped[list["Alert"]] = relationship(
-        back_populates="asset",
-    )
-
-    activities: Mapped[list["AssetActivity"]] = relationship(
-        back_populates="asset",
     )
 
 
@@ -191,100 +174,91 @@ class Asset(Base):
 class Alert(Base):
     __tablename__ = "alerts"
 
-    alert_id: Mapped[str] = mapped_column(
-        String,
+    alert_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    external_id: Mapped[str | None] = mapped_column(
-        String,
-        nullable=True,
-    )
-
-    organization_id: Mapped[str] = mapped_column(
-        ForeignKey("organizations.organization_id"),
+    external_id = Column(
+        String(100),
         nullable=False,
     )
 
-    asset_id: Mapped[str | None] = mapped_column(
-        ForeignKey("assets.asset_id"),
-        nullable=True,
+    organization_id = Column(
+        String(20),
+        ForeignKey("organizations.organization_id"),
+        nullable=False,
+        index=True,
     )
 
-    analyst_id: Mapped[str | None] = mapped_column(
+    asset_id = Column(
+        String(20),
+        ForeignKey("assets.asset_id"),
+        nullable=False,
+        index=True,
+    )
+
+    analyst_id = Column(
+        String(20),
         ForeignKey("analysts.analyst_id"),
         nullable=True,
+        index=True,
     )
 
-    alert_type: Mapped[str | None] = mapped_column(
-        String,
+    alert_type = Column(
+        String(100),
         nullable=True,
     )
 
-    severity: Mapped[str | None] = mapped_column(
-        String,
+    severity = Column(
+        String(50),
         nullable=True,
     )
 
-    status: Mapped[str | None] = mapped_column(
-        String,
+    status = Column(
+        String(50),
         nullable=True,
     )
 
-    created_at: Mapped[datetime | None] = mapped_column(
+    created_at = Column(
         DateTime,
         nullable=True,
     )
 
-    closed_at: Mapped[datetime | None] = mapped_column(
+    closed_at = Column(
         DateTime,
         nullable=True,
     )
 
-    closure_time_minutes: Mapped[float | None] = mapped_column(
+    closure_time_minutes = Column(
         Float,
         nullable=True,
     )
 
-    investigation_notes: Mapped[str | None] = mapped_column(
+    investigation_notes = Column(
         Text,
         nullable=True,
     )
 
-    evidence_reviewed: Mapped[bool | None] = mapped_column(
+    evidence_reviewed = Column(
         Boolean,
         nullable=True,
     )
 
-    escalated: Mapped[bool | None] = mapped_column(
+    escalated = Column(
         Boolean,
         nullable=True,
     )
 
-    false_positive: Mapped[bool | None] = mapped_column(
+    false_positive = Column(
         Boolean,
         nullable=True,
     )
 
-    incident_id: Mapped[str | None] = mapped_column(
-        String,
+    incident_id = Column(
+        String(20),
         nullable=True,
-    )
-
-    organization: Mapped["Organization"] = relationship(
-        back_populates="alerts",
-    )
-
-    analyst: Mapped["Analyst | None"] = relationship(
-        back_populates="alerts",
-    )
-
-    asset: Mapped["Asset | None"] = relationship(
-        back_populates="alerts",
-    )
-
-    investigations: Mapped[list["Investigation"]] = relationship(
-        back_populates="alert",
+        index=True,
     )
 
 
@@ -295,43 +269,50 @@ class Alert(Base):
 class Incident(Base):
     __tablename__ = "incidents"
 
-    incident_id: Mapped[str] = mapped_column(
-        String,
+    incident_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    organization_id: Mapped[str] = mapped_column(
-        ForeignKey("organizations.organization_id"),
+    external_id = Column(
+        String(100),
         nullable=False,
     )
 
-    incident_type: Mapped[str | None] = mapped_column(
-        String,
+    organization_id = Column(
+        String(20),
+        ForeignKey("organizations.organization_id"),
+        nullable=False,
+        index=True,
+    )
+
+    title = Column(
+        String(200),
+        nullable=False,
+    )
+
+    severity = Column(
+        String(50),
         nullable=True,
     )
 
-    severity: Mapped[str | None] = mapped_column(
-        String,
+    status = Column(
+        String(50),
         nullable=True,
     )
 
-    status: Mapped[str | None] = mapped_column(
-        String,
-        nullable=True,
-    )
-
-    created_at: Mapped[datetime | None] = mapped_column(
-        DateTime,
-        nullable=True,
-    )
-
-    resolved_at: Mapped[datetime | None] = mapped_column(
-        DateTime,
-        nullable=True,
-    )
-
-    description: Mapped[str | None] = mapped_column(
+    description = Column(
         Text,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    resolved_at = Column(
+        DateTime,
         nullable=True,
     )
 
@@ -343,72 +324,68 @@ class Incident(Base):
 class Investigation(Base):
     __tablename__ = "investigations"
 
-    investigation_id: Mapped[str] = mapped_column(
-        String,
+    investigation_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    alert_id: Mapped[str] = mapped_column(
+    alert_id = Column(
+        String(20),
         ForeignKey("alerts.alert_id"),
         nullable=False,
+        index=True,
     )
 
-    analyst_id: Mapped[str] = mapped_column(
+    analyst_id = Column(
+        String(20),
         ForeignKey("analysts.analyst_id"),
         nullable=False,
+        index=True,
     )
 
-    started_at: Mapped[datetime | None] = mapped_column(
+    started_at = Column(
         DateTime,
         nullable=True,
     )
 
-    completed_at: Mapped[datetime | None] = mapped_column(
+    completed_at = Column(
         DateTime,
         nullable=True,
     )
 
-    duration_minutes: Mapped[float | None] = mapped_column(
-        Float,
+    duration_minutes = Column(
+        Integer,
         nullable=True,
     )
 
-    actions_performed: Mapped[str | None] = mapped_column(
+    actions_performed = Column(
         Text,
         nullable=True,
     )
 
-    queries_executed: Mapped[str | None] = mapped_column(
-        Text,
+    queries_executed = Column(
+        Integer,
         nullable=True,
     )
 
-    evidence_reviewed: Mapped[bool | None] = mapped_column(
+    evidence_reviewed = Column(
         Boolean,
         nullable=True,
     )
 
-    investigation_notes: Mapped[str | None] = mapped_column(
+    investigation_notes = Column(
         Text,
         nullable=True,
     )
 
-    findings: Mapped[str | None] = mapped_column(
+    findings = Column(
         Text,
         nullable=True,
     )
 
-    escalation_decision: Mapped[str | None] = mapped_column(
-        String,
+    escalation_decision = Column(
+        Boolean,
         nullable=True,
-    )
-
-    alert: Mapped["Alert"] = relationship(
-        back_populates="investigations",
-    )
-
-    analyst: Mapped["Analyst"] = relationship(
-        back_populates="investigations",
     )
 
 
@@ -419,43 +396,46 @@ class Investigation(Base):
 class AssetActivity(Base):
     __tablename__ = "asset_activity"
 
-    activity_id: Mapped[str] = mapped_column(
-        String,
+    activity_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    asset_id: Mapped[str] = mapped_column(
+    asset_id = Column(
+        String(20),
         ForeignKey("assets.asset_id"),
         nullable=False,
+        index=True,
     )
 
-    organization_id: Mapped[str] = mapped_column(
-        ForeignKey("organizations.organization_id"),
-        nullable=False,
-    )
-
-    activity_type: Mapped[str | None] = mapped_column(
-        String,
-        nullable=True,
-    )
-
-    timestamp: Mapped[datetime | None] = mapped_column(
+    timestamp = Column(
         DateTime,
         nullable=True,
     )
 
-    source: Mapped[str | None] = mapped_column(
-        String,
+    event_count = Column(
+        Integer,
         nullable=True,
     )
 
-    description: Mapped[str | None] = mapped_column(
-        Text,
+    log_sources_active = Column(
+        Integer,
         nullable=True,
     )
 
-    asset: Mapped["Asset"] = relationship(
-        back_populates="activities",
+    network_events = Column(
+        Integer,
+        nullable=True,
+    )
+
+    authentication_events = Column(
+        Integer,
+        nullable=True,
+    )
+
+    status = Column(
+        String(50),
+        nullable=True,
     )
 
 
@@ -466,42 +446,44 @@ class AssetActivity(Base):
 class PeerBenchmark(Base):
     __tablename__ = "peer_benchmarks"
 
-    benchmark_id: Mapped[str] = mapped_column(
-        String,
+    benchmark_id = Column(
+        String(20),
         primary_key=True,
     )
 
-    organization_id: Mapped[str] = mapped_column(
+    organization_id = Column(
+        String(20),
         ForeignKey("organizations.organization_id"),
         nullable=False,
+        index=True,
     )
 
-    metric_name: Mapped[str] = mapped_column(
-        String,
+    metric_name = Column(
+        String(100),
         nullable=False,
     )
 
-    peer_group: Mapped[str | None] = mapped_column(
-        String,
-        nullable=True,
-    )
-
-    peer_mean: Mapped[float | None] = mapped_column(
+    metric_value = Column(
         Float,
         nullable=True,
     )
 
-    peer_median: Mapped[float | None] = mapped_column(
+    peer_mean = Column(
         Float,
         nullable=True,
     )
 
-    peer_stddev: Mapped[float | None] = mapped_column(
+    peer_stddev = Column(
         Float,
         nullable=True,
     )
 
-    sample_size: Mapped[int | None] = mapped_column(
-        Integer,
+    benchmark_period = Column(
+        String(50),
+        nullable=True,
+    )
+
+    calculated_at = Column(
+        DateTime,
         nullable=True,
     )
