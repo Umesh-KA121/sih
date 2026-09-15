@@ -1,104 +1,92 @@
-from fastapi import APIRouter, HTTPException
+from __future__ import annotations
 
-from app.services.intelligence.supervisory_engine import (
-    run_supervisory_analysis,
+from fastapi import APIRouter, HTTPException, Query
+
+from app.services.intelligence.api_service import (
+    clear_cache,
+    get_all_findings,
+    get_engine_summary,
+    get_findings_for_analyst,
+    get_single_analyst_finding,
+    refresh_engine,
 )
 
-
 router = APIRouter(
-    prefix="/api/intelligence",
+    prefix="/intelligence",
     tags=["Intelligence"],
 )
 
 
 @router.get("/summary")
-def intelligence_summary():
-
-    result = run_supervisory_analysis()
-
-    return {
-        "overall_health": result[
-            "overall_health"
-        ],
-        "risk_distribution": result[
-            "risk_distribution"
-        ],
-        "finding_count": result[
-            "finding_count"
-        ],
-        "high_priority_findings": result[
-            "high_priority_findings"
-        ][:10],
-    }
+def intelligence_summary(
+    refresh: bool = Query(
+        False,
+        description="Force a fresh engine calculation.",
+    ),
+):
+    return get_engine_summary(
+        force_refresh=refresh,
+    )
 
 
 @router.get("/findings")
-def intelligence_findings():
-
-    result = run_supervisory_analysis()
-
-    return {
-        "count": result[
-            "finding_count"
-        ],
-        "findings": result[
-            "findings"
-        ],
-    }
-
-
-@router.get("/analysts")
-def intelligence_analysts():
-
-    result = run_supervisory_analysis()
-
+def intelligence_findings(
+    refresh: bool = Query(
+        False,
+        description="Force a fresh engine calculation.",
+    ),
+):
     return {
         "count": len(
-            result["analysts"]
+            findings := get_all_findings(
+                force_refresh=refresh,
+            )
         ),
-        "analysts": result[
-            "analysts"
-        ],
+        "findings": findings,
     }
 
 
 @router.get("/analysts/{analyst_id}")
 def intelligence_analyst(
     analyst_id: str,
+    refresh: bool = Query(False),
 ):
-
-    result = run_supervisory_analysis()
-
-    for analyst in result[
-        "analysts"
-    ]:
-
-        if analyst[
-            "analyst_id"
-        ] == analyst_id:
-
-            return analyst
-
-    raise HTTPException(
-        status_code=404,
-        detail="Analyst not found",
+    result = get_single_analyst_finding(
+        analyst_id=analyst_id,
+        force_refresh=refresh,
     )
 
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Analyst not found.",
+        )
 
-@router.post("/run")
-def run_intelligence():
+    return result
 
-    result = run_supervisory_analysis()
+
+@router.get("/analysts/{analyst_id}/findings")
+def intelligence_analyst_findings(
+    analyst_id: str,
+    refresh: bool = Query(False),
+):
+    findings = get_findings_for_analyst(
+        analyst_id=analyst_id,
+        force_refresh=refresh,
+    )
 
     return {
-        "status": "completed",
-        "overall_health": result[
-            "overall_health"
-        ],
-        "finding_count": result[
-            "finding_count"
-        ],
-        "risk_distribution": result[
-            "risk_distribution"
-        ],
+        "analyst_id": analyst_id,
+        "count": len(findings),
+        "findings": findings,
     }
+
+
+@router.post("/refresh")
+def intelligence_refresh():
+    return refresh_engine()
+
+
+@router.post("/clear-cache")
+def intelligence_clear_cache():
+    return clear_cache()

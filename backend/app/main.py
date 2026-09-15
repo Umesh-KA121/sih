@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.routes.intelligence import router as intelligence_router
 from app.routers import (
     alerts,
     analysts,
@@ -68,7 +68,7 @@ app.include_router(
 )
 
 app.include_router(
-    intelligence_router
+    intelligence_router,
 )
 
 
