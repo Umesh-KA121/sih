@@ -82,7 +82,7 @@ def root():
 
 
 @app.get("/health")
-def health():
+def health_check():
 
     return {
         "status": "healthy",
